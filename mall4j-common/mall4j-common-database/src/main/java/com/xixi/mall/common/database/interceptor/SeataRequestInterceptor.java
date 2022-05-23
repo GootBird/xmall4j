@@ -1,4 +1,5 @@
-package com.xixi.mall.common.core.interceptor;
+package com.xixi.mall.common.database.interceptor;
+
 
 import cn.hutool.core.util.StrUtil;
 import com.xixi.mall.common.core.constant.Auth;

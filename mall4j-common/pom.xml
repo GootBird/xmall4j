@@ -17,6 +17,9 @@
         <module>mall4j-common-cache</module>
         <module>mall4j-common-core</module>
         <module>mall4j-common-order</module>
+        <module>mall4j-common-database</module>
+        <module>mall4j-common-rocketmq</module>
+        <module>mall4j-common-security</module>
     </modules>
 
 </project>
