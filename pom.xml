@@ -11,6 +11,10 @@
         <module>mall4j-gateway</module>
         <module>mall4j-auth</module>
         <module>mall4j-common</module>
+        <module>mall4j-biz</module>
+        <module>mall4j-platform</module>
+        <module>mall4j-rabc</module>
+        <module>mall4j-api</module>
         <!--        <module>mall4j-rbac</module>-->
         <!--        <module>mall4j-leaf</module>-->
         <!--        <module>mall4j-api</module>-->
