@@ -12,7 +12,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class CacheNameWithTtlBO {
+public class CacheNameWithTtlBo {
 
     private String cacheName;
 

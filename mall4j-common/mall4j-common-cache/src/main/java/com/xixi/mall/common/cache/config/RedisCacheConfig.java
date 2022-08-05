@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.xixi.mall.common.cache.adapter.CacheTtlAdapter;
-import com.xixi.mall.common.cache.bo.CacheNameWithTtlBO;
+import com.xixi.mall.common.cache.bo.CacheNameWithTtlBo;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -54,7 +54,7 @@ public class RedisCacheConfig {
 
         return adapter.listCacheNameWithTtl()
                 .stream()
-                .collect(Collectors.toMap(CacheNameWithTtlBO::getCacheName
+                .collect(Collectors.toMap(CacheNameWithTtlBo::getCacheName
                         , cacheBo -> getRedisConfig(cacheBo.getTtl())
                         , (a, b) -> a
                 ));

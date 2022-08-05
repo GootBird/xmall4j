@@ -1,6 +1,6 @@
 package com.xixi.mall.common.cache.adapter;
 
-import com.xixi.mall.common.cache.bo.CacheNameWithTtlBO;
+import com.xixi.mall.common.cache.bo.CacheNameWithTtlBo;
 
 import java.util.List;
 
@@ -14,6 +14,6 @@ public interface CacheTtlAdapter {
      *
      * @return 需要独立设置过期时间的缓存列表
      */
-    List<CacheNameWithTtlBO> listCacheNameWithTtl();
+    List<CacheNameWithTtlBo> listCacheNameWithTtl();
 
 }
