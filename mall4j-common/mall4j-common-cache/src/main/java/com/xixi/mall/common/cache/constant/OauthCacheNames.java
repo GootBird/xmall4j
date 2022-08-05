@@ -5,7 +5,7 @@ public interface OauthCacheNames {
     /**
      * oauth 授权相关key
      */
-    String OAUTH_PREFIX = "mall4cloud_oauth:";
+    String OAUTH_PREFIX = "mall4j_oauth:";
 
     /**
      * token 授权相关key

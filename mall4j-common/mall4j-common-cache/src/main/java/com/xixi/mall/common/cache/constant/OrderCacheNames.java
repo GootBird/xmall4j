@@ -5,7 +5,7 @@ public interface OrderCacheNames {
     /**
      * 前缀
      */
-    String ORDER_PREFIX = "mall4cloud_order:";
+    String ORDER_PREFIX = "mall4j_order:";
 
     /**
      * 确认订单信息缓存

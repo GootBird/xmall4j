@@ -1,21 +1,27 @@
-package com.xixi.mall.api.auth.dto;
+package com.xixi.mall.auth.entity;
 
+import com.xixi.mall.common.core.webbase.entity.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
+/**
+ * 统一账户信息
+ */
 @Setter
 @Getter
 @ToString
-public class AuthAccountDTO {
+public class AuthAccount extends BaseEntity {
+
+    /**
+     * 全平台用户唯一id
+     */
+//    @DistributedId("mall4cloud-auth-account")
+    private Long uid;
 
     /**
      * 用户名
      */
-    @NotBlank(message = "username not blank")
     private String username;
 
     /**
@@ -31,31 +37,26 @@ public class AuthAccountDTO {
     /**
      * 状态 1:启用 0:禁用 -1:删除
      */
-    @NotNull(message = "status not null")
     private Integer status;
 
     /**
      * 系统类型见SysTypeEnum 0.普通用户系统 1.商家端
      */
-    @NotNull(message = "sysType not null")
     private Integer sysType;
 
     /**
      * 用户id
      */
-    @NotNull(message = "userId not null")
     private Long userId;
 
     /**
      * 所属租户
      */
-    @NotNull(message = "tenantId not null")
     private Long tenantId;
 
     /**
      * 是否是管理员
      */
-    @NotNull(message = "isAdmin not null")
     private Integer isAdmin;
 
 }

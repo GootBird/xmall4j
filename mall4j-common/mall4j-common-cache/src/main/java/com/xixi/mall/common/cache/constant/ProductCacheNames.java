@@ -5,7 +5,7 @@ public interface ProductCacheNames {
     /**
      * 前缀
      */
-    String PRODUCT_PREFIX = "mall4cloud_product:";
+    String PRODUCT_PREFIX = "mall4j_product:";
 
     /**
      * 根据skuid获取sku的缓存key

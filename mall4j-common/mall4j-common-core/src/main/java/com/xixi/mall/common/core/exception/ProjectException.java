@@ -7,8 +7,6 @@ public class ProjectException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    private Object object;
-
     public ProjectException(String msg) {
         super(msg);
     }

@@ -12,7 +12,10 @@ public class DefaultAuthConfigAdapter implements AuthConfigAdapter {
     /**
      * 内部直接调用接口，无需登录权限
      */
-    private static final String FEIGN_INSIDER_URI = FeignInsideAuthConfig.FEIGN_INSIDE_URL_PREFIX + "/insider/**";
+    private static final String FEIGN_INSIDER_URI = FeignInsideAuthConfig.FEIGN_URL
+            + "/**"
+            + FeignInsideAuthConfig.INSIDER_URL
+            + "/**";
 
     /**
      * 外部直接调用接口，无需登录权限 unwanted auth

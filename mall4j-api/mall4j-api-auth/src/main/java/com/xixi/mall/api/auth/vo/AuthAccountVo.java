@@ -8,7 +8,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class AuthAccountVO {
+public class AuthAccountVo {
     /**
      * 全平台用户唯一id
      */

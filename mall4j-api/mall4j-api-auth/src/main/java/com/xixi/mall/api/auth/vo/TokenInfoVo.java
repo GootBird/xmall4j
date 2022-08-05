@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Getter
 @ToString
 @Accessors(chain = true)
-public class TokenInfoVO {
+public class TokenInfoVo {
 
     @ApiModelProperty("accessToken")
     private String accessToken;
