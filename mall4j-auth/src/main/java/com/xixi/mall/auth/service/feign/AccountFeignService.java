@@ -111,7 +111,7 @@ public class AccountFeignService {
                 authAccountDTO.getSysType()
         );
 
-        if (userNameBo != null && !Objects.equals(userNameBo.getUserId(), authAccountDTO.getUserId())) {
+        if (Objects.nonNull(userNameBo) && !Objects.equals(userNameBo.getUserId(), authAccountDTO.getUserId())) {
             ThrowUtils.throwErr("用户名已存在，请更换用户名再次尝试");
         }
 
