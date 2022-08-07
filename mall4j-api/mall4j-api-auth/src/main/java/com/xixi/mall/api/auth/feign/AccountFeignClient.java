@@ -53,7 +53,7 @@ public interface AccountFeignClient {
     /**
      * 根据用户id和系统类型获取用户信息
      *
-     * @param userId 用户id
+     * @param userId  用户id
      * @return void
      */
     @GetMapping("/getById")

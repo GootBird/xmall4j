@@ -2,6 +2,7 @@ package com.xixi.mall.auth.service.sys;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -13,7 +14,6 @@ import com.xixi.mall.common.core.enums.ResponseEnum;
 import com.xixi.mall.common.core.utils.PrincipalUtil;
 import com.xixi.mall.common.core.utils.ThrowUtils;
 import com.xixi.mall.common.security.bo.TokenInfoBo;
-import io.seata.common.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static com.xixi.mall.common.core.constant.Constant.VOID;
 
 /**
  * token管理 1. 登陆返回token 2. 刷新token 3. 清除用户过去token 4. 校验token
@@ -43,6 +45,18 @@ public class TokenStoreSysService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+
+    /**
+     * 普通用户token过期时间  1小时
+     */
+    private static final int GENERAL_USER_EXPIRES = 3600;
+
+    /**
+     * 系统管理远token过期时间  2小时
+     */
+    private static final int ADMIN_USER_EXPIRES = 7200;
+
+
     public TokenStoreSysService(RedisTemplate<Object, Object> redisTemplate,
                                 RedisSerializer<Object> redisSerializer,
                                 StringRedisTemplate stringRedisTemplate) {
@@ -53,7 +67,7 @@ public class TokenStoreSysService {
     }
 
     /**
-     * 将用户的部分信息存储在token中，并返回token信息
+     * 生成用户token并缓存
      *
      * @param userInfoInToken 用户在token中的信息
      * @return token信息
@@ -75,13 +89,13 @@ public class TokenStoreSysService {
         // 一个用户会登陆很多次，每次登陆的token都会存在 uid_to_access里面
         // 但是每次保存都会更新这个key的时间，而key里面的token有可能会过期，过期就要移除掉
         List<String> existsAccessTokens = new LinkedList<>();
-        // 新的token数据
-        existsAccessTokens.add(accessToken + StrUtil.COLON + refreshToken);
 
-        Optional.ofNullable(redisTemplate.opsForSet().size(uidToAccessKeyStr))
+        existsAccessTokens.add(accessToken + StrUtil.COLON + refreshToken); // 新的token数据
+
+        Optional.ofNullable(redisTemplate.opsForSet().size(uidToAccessKeyStr)) //移除过期token
                 .filter(size -> size != 0)
                 .map(size -> stringRedisTemplate.opsForSet().pop(uidToAccessKeyStr, size))
-                .filter(CollectionUtils::isNotEmpty)
+                .filter(CollectionUtil::isNotEmpty)
                 .ifPresent(tokenInfoBoList -> tokenInfoBoList.forEach(
                         accessTokenWithRefreshToken -> {
                             String accessTokenData = accessTokenWithRefreshToken.split(StrUtil.COLON)[0];
@@ -112,7 +126,7 @@ public class TokenStoreSysService {
             // 通过access_token保存用户的租户id，用户id，uid
             connection.setEx(accessKey, expiresIn, Objects.requireNonNull(redisSerializer.serialize(userInfoInToken)));
 
-            return null;
+            return VOID;
         });
 
         // 返回给前端是加密的token
@@ -123,19 +137,19 @@ public class TokenStoreSysService {
     }
 
     private int getExpiresIn(int sysType) {
-        // 3600秒
-        int expiresIn = 3600;
 
-        // 普通用户token过期时间 1小时
+        // 普通用户
         if (Objects.equals(sysType, SysTypeEnum.ORDINARY.getValue())) {
-            expiresIn = expiresIn * 24 * 30;
+            return GENERAL_USER_EXPIRES;
         }
-        // 系统管理员的token过期时间 2小时
+
+        // 商家平台管理员过期时间 2小时
         if (Objects.equals(sysType, SysTypeEnum.MULTISHOP.getValue())
                 || Objects.equals(sysType, SysTypeEnum.PLATFORM.getValue())) {
-            expiresIn = expiresIn * 24 * 30;
+            return ADMIN_USER_EXPIRES;
         }
-        return expiresIn;
+
+        return GENERAL_USER_EXPIRES;
     }
 
     /**
@@ -224,12 +238,27 @@ public class TokenStoreSysService {
         redisTemplate.delete(uidKey);
     }
 
+    /**
+     * sysType : uid
+     *
+     * @param userInfoInToken 用户token信息
+     * @return sysType : uid
+     */
     private static String getApprovalKey(UserInfoInTokenBo userInfoInToken) {
         return getApprovalKey(userInfoInToken.getSysType().toString(), userInfoInToken.getUid());
     }
 
-    private static String getApprovalKey(String appId, Long uid) {
-        return uid == null ? appId : appId + StrUtil.COLON + uid;
+    /**
+     * sysType : uid
+     *
+     * @param sysType 系统类型
+     * @param uid     uid
+     * @return sysType : uid
+     */
+    private static String getApprovalKey(String sysType, Long uid) {
+        return Objects.isNull(uid)
+                ? sysType
+                : sysType + StrUtil.COLON + uid;
     }
 
     private String encryptToken(String accessToken, Integer sysType) {
@@ -270,14 +299,32 @@ public class TokenStoreSysService {
         return decryptToken;
     }
 
+    /**
+     * access:token
+     *
+     * @param accessToken token
+     * @return access:token
+     */
     public String getAccessKey(String accessToken) {
         return CacheNames.ACCESS + accessToken;
     }
 
+    /**
+     * uid_to_access:sysType:uid
+     *
+     * @param approvalKey sysType:uid
+     * @return 前缀 + sysType:uid
+     */
     public String getUidToAccessKey(String approvalKey) {
         return CacheNames.UID_TO_ACCESS + approvalKey;
     }
 
+    /**
+     * refresh_to_access:refreshToken
+     *
+     * @param refreshToken refreshToken
+     * @return refresh_to_access:refreshToken
+     */
     public String getRefreshToAccessKey(String refreshToken) {
         return CacheNames.REFRESH_TO_ACCESS + refreshToken;
     }
@@ -292,24 +339,42 @@ public class TokenStoreSysService {
                 .setExpiresIn(tokenInfoBo.getExpiresIn());
     }
 
-    public void updateUserInfoByUidAndAppId(Long uid, String appId, UserInfoInTokenBo userInfoInTokenBo) {
-        if (userInfoInTokenBo == null) {
+    /**
+     * 更新用户token
+     *
+     * @param uid               用户Id
+     * @param sysType           系统
+     * @param userInfoInTokenBo 用户token信息
+     */
+    public void updateUserInfoByUidAndAppId(Long uid, String sysType, UserInfoInTokenBo userInfoInTokenBo) {
+
+        if (Objects.isNull(userInfoInTokenBo)) {
             return;
         }
-        String uidKey = getUidToAccessKey(getApprovalKey(appId, uid));
-        Set<String> tokenInfoBoList = stringRedisTemplate.opsForSet().members(uidKey);
-        if (tokenInfoBoList == null || tokenInfoBoList.size() == 0) {
+
+        String uidToAccessKeyStr = getUidToAccessKey(getApprovalKey(sysType, uid));
+
+        Set<String> accessRefreshTokenSet = stringRedisTemplate.opsForSet().members(uidToAccessKeyStr);
+
+        if (CollectionUtil.isEmpty(accessRefreshTokenSet)) {
             ThrowUtils.throwErr(ResponseEnum.UNAUTHORIZED);
         }
-        for (String accessTokenWithRefreshToken : tokenInfoBoList) {
+
+        for (String accessTokenWithRefreshToken : accessRefreshTokenSet) {
+
             String[] accessTokenWithRefreshTokenArr = accessTokenWithRefreshToken.split(StrUtil.COLON);
+
             String accessKey = this.getAccessKey(accessTokenWithRefreshTokenArr[0]);
+
             UserInfoInTokenBo oldUserInfoInTokenBo = (UserInfoInTokenBo) redisTemplate.opsForValue().get(accessKey);
+
             if (oldUserInfoInTokenBo == null) {
                 continue;
             }
+
             BeanUtils.copyProperties(userInfoInTokenBo, oldUserInfoInTokenBo);
             redisTemplate.opsForValue().set(accessKey, Objects.requireNonNull(userInfoInTokenBo), getExpiresIn(userInfoInTokenBo.getSysType()), TimeUnit.SECONDS);
+
         }
     }
 }

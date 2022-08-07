@@ -2,6 +2,8 @@ package com.xixi.mall.auth.manage;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.xixi.mall.api.auth.constant.SysTypeEnum;
+import com.xixi.mall.api.auth.vo.AuthAccountVo;
 import com.xixi.mall.auth.entity.AuthAccountEntity;
 import com.xixi.mall.auth.mapper.AuthAccountMapper;
 import com.xixi.mall.common.security.bo.AuthAccountInVerifyBo;
@@ -83,4 +85,18 @@ public class AuthAccountManage {
         );
     }
 
+    public AuthAccountVo getMerchantInfoByTenantId(Long tenantId) {
+
+        AuthAccountEntity accountEntity = authAccountMapper.selectOne(
+                Wrappers.<AuthAccountEntity>lambdaQuery()
+                        .eq(AuthAccountEntity::getSysType, SysTypeEnum.MULTISHOP.getValue())
+                        .eq(AuthAccountEntity::getIsAdmin, 1)
+                        .eq(AuthAccountEntity::getTenantId, tenantId)
+                        .last("LIMIT 1")
+        );
+
+        AuthAccountVo vo = new AuthAccountVo();
+        BeanUtils.copyProperties(accountEntity, vo);
+        return vo;
+    }
 }
