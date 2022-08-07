@@ -286,7 +286,7 @@
                 <!-- 环境标识，需要与配置文件的名称相对应 -->
                 <profiles.active>dev</profiles.active>
                 <!--https://github.com/alibaba/nacos/issues/3460  默认的命名空间不要去设置namespace -->
-                <nacos.namespace>mall4j-dev</nacos.namespace>
+                <nacos.namespace>mall4j</nacos.namespace>
             </properties>
             <activation>
                 <!-- 默认环境 -->

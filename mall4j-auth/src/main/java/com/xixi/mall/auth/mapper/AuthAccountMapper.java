@@ -2,11 +2,11 @@ package com.xixi.mall.auth.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xixi.mall.api.auth.vo.AuthAccountVo;
-import com.xixi.mall.auth.entity.AuthAccount;
+import com.xixi.mall.auth.entity.AuthAccountEntity;
 import com.xixi.mall.common.security.bo.AuthAccountInVerifyBo;
 import org.apache.ibatis.annotations.Param;
 
-public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
+public interface AuthAccountMapper extends BaseMapper<AuthAccountEntity> {
 
     /**
      * 根据输入的用户名及用户名类型获取用户信息
@@ -27,7 +27,7 @@ public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
      * @param sysType 系统类型
      * @return 平台唯一用户
      */
-    AuthAccount getByUserIdAndType(@Param("userId") Long userId, @Param("sysType") Integer sysType);
+    AuthAccountEntity getByUserIdAndType(@Param("userId") Long userId, @Param("sysType") Integer sysType);
 
     /**
      * 根据getByUid获取平台唯一用户
@@ -35,7 +35,7 @@ public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
      * @param uid uid
      * @return 平台唯一用户
      */
-    AuthAccount getByUid(@Param("uid") Long uid);
+    AuthAccountEntity getByUid(@Param("uid") Long uid);
 
     /**
      * 更新密码 根据用户id 和系统类型
@@ -49,16 +49,16 @@ public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
     /**
      * 保存
      *
-     * @param authAccount 用户实体
+     * @param authAccountEntity 用户实体
      */
-    void save(@Param("authAccount") AuthAccount authAccount);
+    void save(@Param("authAccount") AuthAccountEntity authAccountEntity);
 
     /**
      * 更新
      *
-     * @param authAccount authAccount
+     * @param authAccountEntity authAccount
      */
-    void updateAccountInfo(@Param("authAccount") AuthAccount authAccount);
+    void updateAccountInfo(@Param("authAccount") AuthAccountEntity authAccountEntity);
 
     /**
      * 根据用户id和系统类型删除用户
@@ -75,7 +75,7 @@ public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
      * @param systemType
      * @return uid
      */
-    AuthAccount getAccountByInputUserName(@Param("validAccount") String validAccount, @Param("systemType") Integer systemType);
+    AuthAccountEntity getAccountByInputUserName(@Param("validAccount") String validAccount, @Param("systemType") Integer systemType);
 
     /**
      * 根据用户名和系统类型获取用户信息
@@ -90,20 +90,20 @@ public interface AuthAccountMapper extends BaseMapper<AuthAccount> {
     /**
      * 根据用户id更新租户id
      *
-     * @param authAccount
-     * @param userId
-     * @param sysType
-     * @return
+     * @param authAccountEntity user
+     * @param userId      用户ID
+     * @param sysType     系统类型
+     * @return res
      */
-    int updateUserInfoByUserId(@Param("authAccount") AuthAccount authAccount,
+    int updateUserInfoByUserId(@Param("authAccount") AuthAccountEntity authAccountEntity,
                                @Param("userId") Long userId,
                                @Param("sysType") Integer sysType);
 
     /**
      * 根据租户id获取商家信息
      *
-     * @param tenantId
-     * @return
+     * @param tenantId 租户Id
+     * @return vo
      */
     AuthAccountVo getMerchantInfoByTenantId(@Param("tenantId") Long tenantId);
 }

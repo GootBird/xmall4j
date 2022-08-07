@@ -143,8 +143,8 @@ public class AuthFilter implements Filter {
      */
     public boolean checkRbac(UserInfoInTokenBo userInfoInToken, String uri, String method) {
 
-        if (ObjectUtil.notEqual(SysTypeEnum.PLATFORM.value(), userInfoInToken.getSysType())
-                && ObjectUtil.notEqual(SysTypeEnum.MULTISHOP.value(), userInfoInToken.getSysType())) {
+        if (ObjectUtil.notEqual(SysTypeEnum.PLATFORM.getValue(), userInfoInToken.getSysType())
+                && ObjectUtil.notEqual(SysTypeEnum.MULTISHOP.getValue(), userInfoInToken.getSysType())) {
 
             return true;
         }

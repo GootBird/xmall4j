@@ -1,8 +1,13 @@
 package com.xixi.mall.api.auth.constant;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * 系统类型
  */
+@Getter
+@AllArgsConstructor
 public enum SysTypeEnum {
 
     /**
@@ -23,13 +28,5 @@ public enum SysTypeEnum {
     ;
 
     private final Integer value;
-
-    public Integer value() {
-        return value;
-    }
-
-    SysTypeEnum(Integer value) {
-        this.value = value;
-    }
 
 }

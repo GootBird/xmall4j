@@ -11,12 +11,11 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class AuthAccount extends BaseEntity {
+public class AuthAccountEntity extends BaseEntity {
 
     /**
      * 全平台用户唯一id
      */
-//    @DistributedId("mall4cloud-auth-account")
     private Long uid;
 
     /**

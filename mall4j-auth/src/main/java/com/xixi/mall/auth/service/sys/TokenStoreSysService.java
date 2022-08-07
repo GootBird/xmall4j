@@ -1,4 +1,4 @@
-package com.xixi.mall.auth.manager;
+package com.xixi.mall.auth.service.sys;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollUtil;
@@ -33,9 +33,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @RefreshScope
-public class TokenStore {
+public class TokenStoreSysService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TokenStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(TokenStoreSysService.class);
 
     private final RedisTemplate<Object, Object> redisTemplate;
 
@@ -43,8 +43,10 @@ public class TokenStore {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public TokenStore(RedisTemplate<Object, Object> redisTemplate, RedisSerializer<Object> redisSerializer,
-                      StringRedisTemplate stringRedisTemplate) {
+    public TokenStoreSysService(RedisTemplate<Object, Object> redisTemplate,
+                                RedisSerializer<Object> redisSerializer,
+                                StringRedisTemplate stringRedisTemplate) {
+
         this.redisTemplate = redisTemplate;
         this.redisSerializer = redisSerializer;
         this.stringRedisTemplate = stringRedisTemplate;
@@ -125,11 +127,12 @@ public class TokenStore {
         int expiresIn = 3600;
 
         // 普通用户token过期时间 1小时
-        if (Objects.equals(sysType, SysTypeEnum.ORDINARY.value())) {
+        if (Objects.equals(sysType, SysTypeEnum.ORDINARY.getValue())) {
             expiresIn = expiresIn * 24 * 30;
         }
         // 系统管理员的token过期时间 2小时
-        if (Objects.equals(sysType, SysTypeEnum.MULTISHOP.value()) || Objects.equals(sysType, SysTypeEnum.PLATFORM.value())) {
+        if (Objects.equals(sysType, SysTypeEnum.MULTISHOP.getValue())
+                || Objects.equals(sysType, SysTypeEnum.PLATFORM.getValue())) {
             expiresIn = expiresIn * 24 * 30;
         }
         return expiresIn;

@@ -13,7 +13,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>mall4j-api-platform</module>
-        <module>mall4j-api-biz</module>
         <module>mall4j-api-auth</module>
         <module>mall4j-api-rabc</module>
     </modules>

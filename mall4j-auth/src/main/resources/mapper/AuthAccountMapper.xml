@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xixi.mall.auth.mapper.AuthAccountMapper">
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        `uid`, create_time, update_time, username, `password`, create_ip,
+        `status`, sys_type, user_id, tenant_id, is_admin
+    </sql>
+
+    <select id="getAuthAccountInVerifyByInputUserName"
+            resultType="com.xixi.mall.common.security.bo.AuthAccountInVerifyBo">
+        select user_id, sys_type,uid,password,is_admin,tenant_id, status from auth_account
+        where sys_type = #{sysType} and status != -1
+        <if test="inputUserNameType == 1">
+            and username = #{inputUserName}
+        </if>
+    </select>
+
+    <select id="getByUserIdAndType" resultType="com.xixi.mall.auth.entity.AuthAccountEntity">
+        select uid,
+               username,
+               `password`,
+               create_ip,
+               `status`,
+               sys_type,
+               user_id,
+               tenant_id,
+               is_admin
+        from auth_account
+        where sys_type = #{sysType}
+          and user_id = #{userId}
+    </select>
+
+    <select id="getByUid" resultType="com.xixi.mall.auth.entity.AuthAccountEntity">
+        select username,
+               `password`,
+               create_ip,
+               `status`,
+               sys_type,
+               user_id,
+               tenant_id,
+               is_admin
+        from auth_account
+        where uid = #{uid}
+    </select>
+
+    <update id="updatePassword">
+        update auth_account
+        set password = #{newPassWord}
+        where sys_type = #{sysType}
+          and user_id = #{userId}
+    </update>
+
+    <insert id="save">
+        insert into auth_account (`uid`, `username`, `password`, `create_ip`, `status`, `sys_type`, `user_id`,
+                                  `tenant_id`, `is_admin`)
+        values (#{authAccountEntity.uid}, #{authAccountEntity.username}, #{authAccountEntity.password}, #{authAccountEntity.createIp},
+                #{authAccountEntity.status}, #{authAccountEntity.sysType}, #{authAccountEntity.userId}, #{authAccountEntity.tenantId},
+                #{authAccountEntity.isAdmin});
+    </insert>
+
+    <update id="updateAccountInfo">
+        update auth_account
+        <set>
+            <if test="authAccountEntity.username != null">
+                username = #{authAccountEntity.username},
+            </if>
+            <if test="authAccountEntity.password != null">
+                password = #{authAccountEntity.password},
+            </if>
+            <if test="authAccountEntity.status != null">
+                status = #{authAccountEntity.status},
+            </if>
+        </set>
+        where user_id = #{authAccountEntity.userId} and sys_type = #{authAccountEntity.sysType}
+    </update>
+
+    <update id="deleteByUserIdAndSysType">
+        update auth_account
+        set status = -1
+        where user_id = #{userId}
+          and sys_type = #{sysType}
+    </update>
+
+    <update id="updateUserInfoByUserId">
+        update auth_account
+        <set>
+            <if test="authAccountEntity.tenantId != null">
+                tenant_id = #{authAccountEntity.tenantId},
+            </if>
+        </set>
+        where user_id = #{userId} and sys_type = #{sysType} and status != -1 limit 1
+    </update>
+
+    <select id="getAccountByInputUserName" resultType="com.xixi.mall.auth.entity.AuthAccountEntity">
+        select uid, sys_type, user_id
+        from auth_account
+        where username = #{validAccount}
+          and sys_type = #{systemType}
+    </select>
+
+    <select id="getByUsernameAndSysType" resultType="com.xixi.mall.api.auth.vo.AuthAccountVo">
+        select uid, username from auth_account where status != 1
+        <if test="sysType != null">
+            and sys_type = #{sysType}
+        </if>
+        <if test="userName != null and userName != ''">
+            and username = #{userName}
+        </if>
+    </select>
+
+    <select id="getMerchantInfoByTenantId" resultType="com.xixi.mall.api.auth.vo.AuthAccountVo">
+        select user_id,
+               sys_type,
+               uid,
+               username,
+               password,
+               is_admin,
+               tenant_id,
+               status
+        from auth_account
+        where sys_type = 1
+          and is_admin = 1
+          and tenant_id = #{tenantId} limit 1
+    </select>
+
+</mapper>

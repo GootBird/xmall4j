@@ -2,19 +2,20 @@ package com.xixi.mall.auth.service.feign;
 
 import cn.hutool.core.lang.generator.SnowflakeGenerator;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xixi.mall.api.auth.bo.UserInfoInTokenBo;
 import com.xixi.mall.api.auth.constant.SysTypeEnum;
 import com.xixi.mall.api.auth.dto.AuthAccountDto;
 import com.xixi.mall.api.auth.vo.AuthAccountVo;
 import com.xixi.mall.api.auth.vo.TokenInfoVo;
-import com.xixi.mall.auth.entity.AuthAccount;
-import com.xixi.mall.auth.manager.TokenStore;
+import com.xixi.mall.auth.entity.AuthAccountEntity;
+import com.xixi.mall.auth.manage.AuthAccountManage;
+import com.xixi.mall.auth.service.sys.TokenStoreSysService;
 import com.xixi.mall.auth.mapper.AuthAccountMapper;
+import com.xixi.mall.common.core.constant.StatusEnum;
 import com.xixi.mall.common.core.enums.ResponseEnum;
 import com.xixi.mall.common.core.utils.PrincipalUtil;
 import com.xixi.mall.common.core.utils.ThrowUtils;
-import com.xixi.mall.common.security.bo.AuthAccountInVerifyBo;
-import com.xixi.mall.common.security.constant.InputUserNameEnum;
 import com.xixi.mall.common.security.context.AuthUserContext;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.xixi.mall.common.core.constant.Constant.VOID;
@@ -30,6 +30,9 @@ import static com.xixi.mall.common.core.constant.Constant.VOID;
 @Service
 public class AccountFeignService {
 
+
+    @Resource
+    private AuthAccountManage authAccountManage;
 
     @Resource
     private AuthAccountMapper authAccountMapper;
@@ -41,96 +44,98 @@ public class AccountFeignService {
     private MapperFacade mapperFacade;
 
     @Resource
-    private TokenStore tokenStore;
+    private TokenStoreSysService tokenStoreSysService;
 
     private final SnowflakeGenerator snowflakeGenerator = new SnowflakeGenerator();
 
     @Transactional(rollbackFor = Exception.class)
     public Long save(AuthAccountDto authAccountDto) {
 
-        AuthAccount newAccount = verify(authAccountDto);
+        AuthAccountEntity newAccount = verifyUserIsExist(authAccountDto);
         newAccount.setUid(snowflakeGenerator.next());
-        authAccountMapper.save(newAccount);
+
+        authAccountMapper.insert(newAccount);
 
         return newAccount.getUid();
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public Void update(AuthAccountDto authAccountDto) {
-        AuthAccount verify = verify(authAccountDto);
-        authAccountMapper.updateAccountInfo(verify);
 
+        AuthAccountEntity newAccount = verifyUserIsExist(authAccountDto);
+        authAccountManage.updateAccountInfo(newAccount);
         return VOID;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public Void updateAccountStatus(AuthAccountDto authAccountDto) {
 
         Optional.ofNullable(authAccountDto.getStatus())
                 .orElseThrow(ThrowUtils.getSupErr(ResponseEnum.EXCEPTION));
 
-        AuthAccount authAccount = mapperFacade.map(authAccountDto, AuthAccount.class);
-        authAccountMapper.updateAccountInfo(authAccount);
+        AuthAccountEntity authAccountEntity = mapperFacade.map(authAccountDto, AuthAccountEntity.class);
+        authAccountManage.updateAccountInfo(authAccountEntity);
 
         return VOID;
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     public Void deleteById(Long userId) {
-        UserInfoInTokenBo userInfoInTokenBo = AuthUserContext.get();
-        authAccountMapper.deleteByUserIdAndSysType(userId, userInfoInTokenBo.getSysType());
 
+        UserInfoInTokenBo userInfoInTokenBo = AuthUserContext.get();
+
+        authAccountManage.deleteByUserIdAndSysType(userId, userInfoInTokenBo.getSysType());
         return VOID;
     }
 
     public AuthAccountVo getById(Long userId) {
         UserInfoInTokenBo userInfoInTokenBo = AuthUserContext.get();
-        AuthAccount authAccount = authAccountMapper.getByUserIdAndType(userId, userInfoInTokenBo.getSysType());
-        return mapperFacade.map(authAccount, AuthAccountVo.class);
+        AuthAccountEntity authAccountEntity = authAccountMapper.getByUserIdAndType(userId, userInfoInTokenBo.getSysType());
+
+        return mapperFacade.map(authAccountEntity, AuthAccountVo.class);
     }
 
     public TokenInfoVo storeTokenAndGet(UserInfoInTokenBo userInfoInTokenBo) {
-        return tokenStore.storeAndGetVo(userInfoInTokenBo);
+        return tokenStoreSysService.storeAndGetVo(userInfoInTokenBo);
     }
 
 
     public AuthAccountVo getByUsername(String username, SysTypeEnum sysType) {
-        return authAccountMapper.getByUsernameAndSysType(username, sysType.value());
+        return authAccountMapper.getByUsernameAndSysType(username, sysType.getValue());
     }
 
-    private AuthAccount verify(AuthAccountDto authAccountDTO) {
-        // 用户名
-        if (!PrincipalUtil.isUserName(authAccountDTO.getUsername())) {
+    private AuthAccountEntity verifyUserIsExist(AuthAccountDto authAccountDto) {
+
+        if (!PrincipalUtil.isUserName(authAccountDto.getUsername())) {
             ThrowUtils.throwErr("用户名格式不正确");
         }
 
-        AuthAccountInVerifyBo userNameBo = authAccountMapper.getAuthAccountInVerifyByInputUserName(
-                InputUserNameEnum.USERNAME.getValue(),
-                authAccountDTO.getUsername(),
-                authAccountDTO.getSysType()
+        int count = authAccountMapper.selectCount(
+                Wrappers.<AuthAccountEntity>lambdaQuery()
+                        .eq(AuthAccountEntity::getSysType, SysTypeEnum.MULTISHOP.getValue())
+                        .eq(AuthAccountEntity::getUsername, authAccountDto.getUsername())
+                        .ne(AuthAccountEntity::getStatus, StatusEnum.DELETE.getValue())
+                        .ne(AuthAccountEntity::getUserId, authAccountDto.getUserId())
         );
 
-        if (Objects.nonNull(userNameBo) && !Objects.equals(userNameBo.getUserId(), authAccountDTO.getUserId())) {
+        if (count > 0) {
             ThrowUtils.throwErr("用户名已存在，请更换用户名再次尝试");
         }
 
-        AuthAccount authAccount = mapperFacade.map(authAccountDTO, AuthAccount.class);
+        AuthAccountEntity authAccountEntity = mapperFacade.map(authAccountDto, AuthAccountEntity.class);
 
-        if (StrUtil.isNotBlank(authAccount.getPassword())) {
-            authAccount.setPassword(passwordEncoder.encode(authAccount.getPassword()));
+        if (StrUtil.isNotBlank(authAccountEntity.getPassword())) {
+            authAccountEntity.setPassword(passwordEncoder.encode(authAccountEntity.getPassword()));
         }
 
-        return authAccount;
+        return authAccountEntity;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Void updateUser(UserInfoInTokenBo userInfoInTokenBo, Long userId, Integer sysType) {
-        AuthAccount byUserIdAndType = authAccountMapper.getByUserIdAndType(userId, sysType);
+        AuthAccountEntity byUserIdAndType = authAccountMapper.getByUserIdAndType(userId, sysType);
         userInfoInTokenBo.setUid(byUserIdAndType.getUid());
-        tokenStore.updateUserInfoByUidAndAppId(byUserIdAndType.getUid(), sysType.toString(), userInfoInTokenBo);
-        AuthAccount authAccount = mapperFacade.map(userInfoInTokenBo, AuthAccount.class);
-        int res = authAccountMapper.updateUserInfoByUserId(authAccount, userId, sysType);
+        tokenStoreSysService.updateUserInfoByUidAndAppId(byUserIdAndType.getUid(), sysType.toString(), userInfoInTokenBo);
+        AuthAccountEntity authAccountEntity = mapperFacade.map(userInfoInTokenBo, AuthAccountEntity.class);
+        int res = authAccountMapper.updateUserInfoByUserId(authAccountEntity, userId, sysType);
         if (res != 1) {
             ThrowUtils.throwErr("用户信息错误，更新失败");
         }

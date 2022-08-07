@@ -1,6 +1,6 @@
 package com.xixi.mall.common.security.filter;
 
-import com.mall4j.cloud.common.xss.XssWrapper;
+import com.xixi.mall.common.core.handle.XssWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -24,17 +24,17 @@ import java.io.IOException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class XssFilter implements Filter {
 
-	private static final Logger logger = LoggerFactory.getLogger(XssFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(XssFilter.class);
 
-	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
-		HttpServletRequest req = (HttpServletRequest) request;
-		HttpServletResponse resp = (HttpServletResponse) response;
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp = (HttpServletResponse) response;
 
-		// replaceAll("[\r\n]" =》 Potential CRLF Injection for logs
-		logger.info("AuthFilter RequestURI :{}", req.getRequestURI().replaceAll("[\r\n]",""));
-		// xss 过滤
-		chain.doFilter(new XssWrapper(req), resp);
-	}
+        // replaceAll("[\r\n]" =》 Potential CRLF Injection for logs
+        logger.info("AuthFilter RequestURI :{}", req.getRequestURI().replaceAll("[\r\n]", ""));
+        // xss 过滤
+        chain.doFilter(new XssWrapper(req), resp);
+    }
 }

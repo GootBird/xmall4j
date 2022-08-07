@@ -26,13 +26,13 @@ public class AccountFeignController implements AccountFeignClient {
     }
 
     @Override
-    public ServerResponse<Void> update(AuthAccountDto authAccountDTO) {
-        return PackResponseEnhance.enhance(() -> service.update(authAccountDTO));
+    public ServerResponse<Void> update(AuthAccountDto authAccountDto) {
+        return PackResponseEnhance.enhance(() -> service.update(authAccountDto));
     }
 
     @Override
-    public ServerResponse<Void> updateAccountStatus(AuthAccountDto authAccountDTO) {
-        return PackResponseEnhance.enhance(() -> service.updateAccountStatus(authAccountDTO));
+    public ServerResponse<Void> updateAccountStatus(AuthAccountDto authAccountDto) {
+        return PackResponseEnhance.enhance(() -> service.updateAccountStatus(authAccountDto));
     }
 
     @Override
@@ -47,8 +47,8 @@ public class AccountFeignController implements AccountFeignClient {
     }
 
     @Override
-    public ServerResponse<TokenInfoVo> storeTokenAndGet(UserInfoInTokenBo userInfoInTokenBO) {
-        return PackResponseEnhance.enhance(() -> service.storeTokenAndGet(userInfoInTokenBO));
+    public ServerResponse<TokenInfoVo> storeTokenAndGet(UserInfoInTokenBo userInfoInTokenBo) {
+        return PackResponseEnhance.enhance(() -> service.storeTokenAndGet(userInfoInTokenBo));
     }
 
     @Override
