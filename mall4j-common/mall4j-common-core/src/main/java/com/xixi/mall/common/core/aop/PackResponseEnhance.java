@@ -51,7 +51,7 @@ public class PackResponseEnhance {
             ) {
                 return ServerResponse.fail(codeMsg[0], codeMsg[1]);
             }
-            return ServerResponse.fail("500", "系统异常！");
+            throw new RuntimeException(throwable); //交给spring 统一异常处理层解决
         }
     }
 
