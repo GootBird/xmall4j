@@ -1,7 +1,6 @@
 package com.xixi.mall.api.rabc.feign;
 
 import com.xixi.mall.api.rabc.dto.ClearUserPermissionsCacheDto;
-import com.xixi.mall.common.core.constant.Auth;
 import com.xixi.mall.common.core.feign.FeignInsideAuthConfig;
 import com.xixi.mall.common.core.webbase.vo.ServerResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -23,7 +22,7 @@ public interface PermissionFeignClient {
      * @param method  method
      * @return 是否有某个uri的权限
      */
-    @GetMapping(FeignInsideAuthConfig.INSIDER_URL + Auth.CHECK_PERMISSION_URI)
+    @GetMapping(FeignInsideAuthConfig.INSIDER_URL + "/checkPermission")
     ServerResponse<Boolean> checkPermission(@RequestParam("userId") Long userId,
                                             @RequestParam("sysType") Integer sysType,
                                             @RequestParam("uri") String uri,

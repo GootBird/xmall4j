@@ -48,13 +48,21 @@ public class TokenStoreSysService {
 
     /**
      * 普通用户token过期时间  1小时
+     * 以秒为单位
      */
     private static final int GENERAL_USER_EXPIRES = 3600;
 
     /**
      * 系统管理远token过期时间  2小时
+     * 以秒为单位
      */
     private static final int ADMIN_USER_EXPIRES = 7200;
+
+    /**
+     * 传递给前端的加密token数据由真实token + 系统当前时间 + 系统类型组成
+     * 该字段为真实token的长度
+     */
+    private static final int WEB_TOKEN_PREFIX_LENGTH = 32;
 
 
     public TokenStoreSysService(RedisTemplate<Object, Object> redisTemplate,
@@ -215,7 +223,9 @@ public class TokenStoreSysService {
      * 删除全部的token
      */
     public void deleteAllToken(String appId, Long uid) {
+
         String uidKey = getUidToAccessKey(getApprovalKey(appId, uid));
+
         Long size = redisTemplate.opsForSet().size(uidKey);
 
         if (size == null || size == 0) return;
@@ -261,33 +271,48 @@ public class TokenStoreSysService {
                 : sysType + StrUtil.COLON + uid;
     }
 
-    private String encryptToken(String accessToken, Integer sysType) {
-        return Base64.encode(accessToken + System.currentTimeMillis() + sysType);
+    /**
+     * base64加密token
+     *
+     * @param token   token
+     * @param sysType 系统类型
+     * @return 加密token
+     */
+    private String encryptToken(String token, Integer sysType) {
+        return Base64.encode(token + System.currentTimeMillis() + sysType);
     }
 
-    private String decryptToken(String data) {
-        String decryptStr;
-        String decryptToken = null;
+    /**
+     * 解密token
+     *
+     * @param token token
+     * @return 解密后的token
+     */
+    private String decryptToken(String token) {
+
+        String decryptToken = null,
+                decryptStr = null;
+
         try {
-            decryptStr = Base64.decodeStr(data);
-            decryptToken = decryptStr.substring(0, 32);
 
-            // 创建token的时间，token使用时效性，防止攻击者通过一堆的尝试找到aes的密码，虽然aes是目前几乎最好的加密算法
-            long createTokenTime = Long.parseLong(decryptStr.substring(32, 45));
-
-            // 系统类型
-            int sysType = Integer.parseInt(decryptStr.substring(45));
-
-            // token的过期时间
-            int expiresIn = getExpiresIn(sysType);
-
-            long second = 1000L;
-            if (System.currentTimeMillis() - createTokenTime > expiresIn * second) {
-                ThrowUtils.throwErr("token 格式有误");
-            }
+            decryptStr = Base64.decodeStr(token);
+            decryptToken = decryptStr.substring(0, WEB_TOKEN_PREFIX_LENGTH);
 
         } catch (Exception e) {
             logger.error(e.getMessage());
+            ThrowUtils.throwErr("token 格式有误");
+        }
+
+        // 创建token的时间
+        long createTokenTime = Long.parseLong(decryptStr.substring(WEB_TOKEN_PREFIX_LENGTH, 45));
+
+        // 系统类型
+        int sysType = Integer.parseInt(decryptStr.substring(45));
+
+        // token的过期时间
+        int expiresIn = getExpiresIn(sysType);
+
+        if (System.currentTimeMillis() - createTokenTime > expiresIn) {
             ThrowUtils.throwErr("token 格式有误");
         }
 
@@ -313,7 +338,7 @@ public class TokenStoreSysService {
      * uid_to_access:sysType:uid
      *
      * @param approvalKey sysType:uid
-     * @return 前缀 + sysType:uid
+     * @return uid_to_access:sysType:uid
      */
     public String getUidToAccessKey(String approvalKey) {
         return CacheNames.UID_TO_ACCESS + approvalKey;

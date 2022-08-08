@@ -25,7 +25,7 @@ public class CaptchaController {
      * 获取验证码
      *
      * @param captchaVo vo
-     * @returna 验证码
+     * @return 验证码
      */
     @PostMapping({"/get"})
     public ServerResponse<ResponseModel> get(@RequestBody CaptchaVO captchaVo) {
