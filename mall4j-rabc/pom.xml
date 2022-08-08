@@ -11,4 +11,32 @@
 
     <artifactId>mall4j-rabc</artifactId>
 
+    <description>mall4j 用户角色权限模块</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xixi.mall</groupId>
+            <artifactId>mall4j-common-database</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xixi.mall</groupId>
+            <artifactId>mall4j-common-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+
 </project>
