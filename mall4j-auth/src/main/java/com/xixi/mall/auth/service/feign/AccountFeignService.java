@@ -18,6 +18,7 @@ import com.xixi.mall.common.core.utils.PrincipalUtil;
 import com.xixi.mall.common.core.utils.ThrowUtils;
 import com.xixi.mall.common.security.context.AuthUserContext;
 import ma.glasnost.orika.MapperFacade;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,7 +141,10 @@ public class AccountFeignService {
      * @return resp
      */
     public AuthAccountVo getByUsername(String username, SysTypeEnum sysType) {
-        return authAccountMapper.getByUsernameAndSysType(username, sysType.getValue());
+        AuthAccountEntity authAccountEntity = authAccountManage.getUserByUserName(username, sysType.getValue());
+        AuthAccountVo vo = new AuthAccountVo();
+        BeanUtils.copyProperties(authAccountEntity, vo);
+        return vo;
     }
 
     private AuthAccountEntity verifyUserIsExist(AuthAccountDto authAccountDto) {
@@ -186,9 +190,14 @@ public class AccountFeignService {
 
         tokenStoreSysService.updateUserInfoByUidAndAppId(userEntity.getUid(), sysType.toString(), userInfoInTokenBo);
 
-        AuthAccountEntity authAccountEntity = mapperFacade.map(userInfoInTokenBo, AuthAccountEntity.class);
-
-        int res = authAccountMapper.updateUserInfoByUserId(authAccountEntity, userId, sysType);
+        int res = authAccountMapper.update(null,
+                Wrappers.<AuthAccountEntity>lambdaUpdate()
+                        .set(AuthAccountEntity::getTenantId, userInfoInTokenBo.getTenantId())
+                        .eq(AuthAccountEntity::getUserId, userId)
+                        .eq(AuthAccountEntity::getSysType, sysType)
+                        .eq(AuthAccountEntity::getStatus, StatusEnum.DELETE.getValue())
+                        .last("LIMIT 1")
+        );
 
         if (res != 1) {
             ThrowUtils.throwErr("用户信息错误，更新失败");

@@ -23,32 +23,24 @@ public class AuthAccountManage {
     /**
      * 根据输入的用户名及用户名类型获取用户信息
      *
-     * @param inputUserNameType 输入的用户名类型 1.username 2.mobile 3.email
-     * @param inputUserName     输入的用户名
-     * @param sysType           系统类型
+     * @param userName 输入的用户名
+     * @param sysType  系统类型
      * @return 用户在token中信息 + 数据库中的密码
      */
-    public AuthAccountInVerifyBo getAuthAccountInVerifyByInputUserName(Integer inputUserNameType,
-                                                                       String inputUserName,
-                                                                       Integer sysType) {
-        AuthAccountEntity accountEntity = authAccountMapper.selectOne(
+    public AuthAccountEntity getUserByUserName(String userName,
+                                               Integer sysType) {
+
+        return authAccountMapper.selectOne(
                 Wrappers.<AuthAccountEntity>lambdaQuery()
                         .eq(AuthAccountEntity::getSysType, sysType)
-                        .eq(Objects.equals(inputUserNameType, 1), AuthAccountEntity::getUsername, inputUserName)
+                        .eq(AuthAccountEntity::getUsername, userName)
                         .ne(AuthAccountEntity::getStatus, -1)
         );
-
-        AuthAccountInVerifyBo verifyBo = new AuthAccountInVerifyBo();
-        BeanUtils.copyProperties(accountEntity, verifyBo);
-
-        return verifyBo;
     }
 
 
     @Transactional(rollbackFor = Exception.class)
     public void updateAccountInfo(AuthAccountEntity authAccountEntity) {
-
-        authAccountMapper.updateAccountInfo(authAccountEntity);
 
         String userName = authAccountEntity.getUsername(),
                 password = authAccountEntity.getPassword();
