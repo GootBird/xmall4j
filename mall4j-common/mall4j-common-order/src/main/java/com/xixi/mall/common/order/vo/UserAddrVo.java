@@ -1,6 +1,6 @@
 package com.xixi.mall.common.order.vo;
 
-import com.xixi.mall.common.core.webbase.vo.BaseVO;
+import com.xixi.mall.common.core.webbase.vo.BaseVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 @Getter
 @ToString
 @Accessors(chain = true)
-public class UserAddrVO extends BaseVO {
+public class UserAddrVo extends BaseVo {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty("ID")

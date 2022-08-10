@@ -34,6 +34,6 @@ public class ShopCartOrderMergerVO {
     List<ShopCartOrderVO> shopCartOrders;
 
     @ApiModelProperty(value = "用户地址")
-    private UserAddrVO userAddr;
+    private UserAddrVo userAddr;
 
 }

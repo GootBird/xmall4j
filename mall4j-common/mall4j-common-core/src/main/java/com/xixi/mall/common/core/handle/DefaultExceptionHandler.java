@@ -2,9 +2,7 @@ package com.xixi.mall.common.core.handle;
 
 import cn.hutool.core.util.StrUtil;
 import com.xixi.mall.common.core.enums.ResponseEnum;
-import com.xixi.mall.common.core.utils.PackResponseEnhanceUtils;
 import com.xixi.mall.common.core.webbase.vo.ServerResponse;
-import com.xixi.mall.common.core.exception.ProjectException;
 import io.seata.core.context.RootContext;
 import io.seata.core.exception.TransactionException;
 import io.seata.tm.api.GlobalTransactionContext;
@@ -66,15 +64,6 @@ public class DefaultExceptionHandler {
         log.error("methodArgumentNotValidExceptionHandler", e);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ServerResponse.fail(ResponseEnum.HTTP_MESSAGE_NOT_READABLE));
-    }
-
-    @ExceptionHandler(ProjectException.class)
-    public ResponseEntity<ServerResponse<Object>> mall4cloudExceptionHandler(ProjectException e) {
-        log.error("mall4cloudExceptionHandler", e);
-
-        // 失败返回消息 状态码固定为直接显示消息的状态码
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(PackResponseEnhanceUtils.getErrResponse(e));
     }
 
     @ExceptionHandler(Exception.class)
