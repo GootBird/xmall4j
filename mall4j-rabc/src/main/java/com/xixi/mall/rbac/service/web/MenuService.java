@@ -8,11 +8,13 @@ import com.xixi.mall.common.core.utils.BooleanUtil;
 import com.xixi.mall.common.core.utils.ThrowUtils;
 import com.xixi.mall.common.security.context.AuthUserContext;
 import com.xixi.mall.rbac.entity.MenuEntity;
+import com.xixi.mall.rbac.manage.MenuManage;
 import com.xixi.mall.rbac.mapper.MenuMapper;
 import com.xixi.mall.rbac.vo.MenuSimpleVo;
 import com.xixi.mall.rbac.vo.MenuVo;
 import com.xixi.mall.rbac.vo.RouteMetaVo;
 import com.xixi.mall.rbac.vo.RouteVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -30,6 +32,10 @@ public class MenuService {
     @Resource
     private MenuMapper menuMapper;
 
+    @Resource
+    private MenuManage menuManage;
+
+
     public List<RouteVo> route(Integer sysType) {
 
         sysType = Optional.ofNullable(sysType)
@@ -37,12 +43,7 @@ public class MenuService {
                         AuthUserContext.get().getSysType()
                 );
 
-        return menuMapper.selectList(
-                Wrappers.<MenuEntity>lambdaQuery()
-                        .eq(MenuEntity::getBizType, sysType)
-                        .orderByAsc(MenuEntity::getCreateTime)
-                        .orderByAsc(MenuEntity::getSeq)
-        )
+        return menuManage.listBySysType(sysType)
                 .stream()
                 .map(menuEntity ->
                         new RouteVo()
@@ -80,24 +81,49 @@ public class MenuService {
     }
 
     public Void save(MenuDto menuDto) {
-        Menu menu = checkAndGenerate(menuDto);
+        MenuEntity menu = checkAndGenerate(menuDto);
         menu.setMenuId(null);
-        menuService.save(menu);
+        menuManage.save(menu);
         return VOID;
 
     }
 
+    private MenuEntity checkAndGenerate(MenuDto menuDto) {
+        UserInfoInTokenBo userInfoInTokenBO = AuthUserContext.get();
+
+        if (!Objects.equals(userInfoInTokenBO.getTenantId(), 0L)) {
+            ThrowUtils.throwErr("无权限操作！");
+        }
+
+        MenuEntity menuEntity = new MenuEntity();
+        BeanUtils.copyProperties(menuDto, menuEntity);
+
+        menuEntity.setBizType(
+                Optional.ofNullable(menuDto.getSysType())
+                        .orElse(AuthUserContext.get().getSysType())
+        );
+        return menuEntity;
+    }
+
     public Void update(MenuDto menuDto) {
+        MenuEntity menuEntity = checkAndGenerate(menuDto);
+        menuManage.update(menuEntity);
+        return VOID;
     }
 
     public Void delete(Long menuId, Integer sysType) {
 
         UserInfoInTokenBo userInfoInTokenBo = AuthUserContext.get();
+
         if (!Objects.equals(userInfoInTokenBo.getTenantId(), 0L)) {
             ThrowUtils.throwErr("无权限操作！");
         }
-        sysType = Objects.isNull(sysType) ? userInfoInTokenBo.getSysType() : sysType;
-        menuService.deleteById(menuId, sysType);
+
+        sysType = Objects.isNull(sysType)
+                ? userInfoInTokenBo.getSysType()
+                : sysType;
+
+        menuManage.deleteById(menuId, sysType);
 
         return VOID;
     }
@@ -105,7 +131,7 @@ public class MenuService {
     public List<MenuSimpleVo> listWithPermissions() {
 
         UserInfoInTokenBo userInfoInTokenBo = AuthUserContext.get();
-        List<MenuSimpleVo> menuList = menuService.listWithPermissions(userInfoInTokenBo.getSysType());
+        List<MenuSimpleVo> menuList = menuManage.listWithPermissions(userInfoInTokenBo.getSysType());
         return menuList;
     }
 
